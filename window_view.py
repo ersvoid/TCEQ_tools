@@ -41,8 +41,8 @@ def req_rt_sites(pop):
 def viewer(raw):
     if len(raw) == 7:
         raw = "TX" + str(raw)
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
-    conn = cx_Oracle.connect('ESTINSON', 'Sartre05', dsn_tns, encoding='UTF-8', nencoding='UTF-8')
+    dsn_tns = cx_Oracle.makedsn('link', '1521', service_name='other_link')
+    conn = cx_Oracle.connect('user', 'pw', dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     c.execute("SELECT NUMBER0, TINWSYS_IS_NUMBER, NAME, ACTIVITY_STATUS_CD, D_POPULATION_COUNT, PWS_ST_TYPE_CD "
               "FROM SDWIS2TX.TINWSYS "
