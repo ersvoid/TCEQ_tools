@@ -6,8 +6,8 @@ import datetime
 
 
 def sample_sites_word_merge():
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
-    conn = cx_Oracle.connect('ESTINSON', 'Sartre05', dsn_tns, encoding='UTF-8', nencoding='UTF-8')
+    dsn_tns = cx_Oracle.makedsn('link', 'port#', service_name='other_link')
+    conn = cx_Oracle.connect('Username', 'password', dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     ask = input("ENTER PWS ID: ")
     if len(ask) == 7:
@@ -57,7 +57,7 @@ def sample_sites_word_merge():
                    short_id=ask[2:],
                    yearmonthday=code_today,
                    SAMPLE_ID=sites)
-    path = r'C:\Users\Estinson\Desktop' + "\\" + "sample_sites_" + ask + ".docx"
+    path = r'C:\Users\username\Desktop' + "\\" + "sample_sites_" + ask + ".docx"
     document.write(path)
     c.close()
     conn.close()
