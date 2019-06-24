@@ -1,5 +1,4 @@
 from tkinter import *
-from tkinter import ttk
 import cx_Oracle
 from operator import itemgetter
 
@@ -41,8 +40,8 @@ def req_rt_sites(pop):
 def viewer(raw):
     if len(raw) == 7:
         raw = "TX" + str(raw)
-    dsn_tns = cx_Oracle.makedsn('link', '1521', service_name='other_link')
-    conn = cx_Oracle.connect('user', 'pw', dsn_tns, encoding='UTF-8', nencoding='UTF-8')
+    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+    conn = cx_Oracle.connect('ESTINSON', 'Sartre05', dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     c.execute("SELECT NUMBER0, TINWSYS_IS_NUMBER, NAME, ACTIVITY_STATUS_CD, D_POPULATION_COUNT, PWS_ST_TYPE_CD "
               "FROM SDWIS2TX.TINWSYS "
@@ -66,14 +65,8 @@ def viewer(raw):
     for v in val:
         if v[1][:2] == 'EP':
             entry_points += 1
-    inventory_info = ["PWS ID: ", NUMBER0, "\n",
-                      "NAME: ", NAME, "\n",
-                      "STATUS: ", ACTIVITY_STATUS_CD, "\n",
-                      "POP: ", D_POPULATION_COUNT, "\n",
-                      "Type: ", PWS_ST_TYPE_CD, "\n",
-                      "TINWSYS #: ", TINWSYS_IS_NUMBER, "\n",
-                      "DISTRIBUTION SYSTEM #: ", tinwsf0is, "\n",
-                      "Entry Points: ", entry_points]
+    inventory_info = [NUMBER0, NAME, ACTIVITY_STATUS_CD, D_POPULATION_COUNT, PWS_ST_TYPE_CD, TINWSYS_IS_NUMBER,
+                      tinwsf0is, entry_points]
     c.execute("SELECT INDICATOR_NAME, INDICATOR_VALUE_CD, INDICATOR_DATE, INDICATOR_END_DATE "
               "FROM SDWIS2TX.TINWSIN "
               "WHERE TINWSYS_IS_NUMBER = {}".format(TINWSYS_IS_NUMBER))
@@ -92,8 +85,9 @@ def viewer(raw):
         finally:
             pass
         if row[0] == "UNDM":
-            indicators.append(["Indictors: ", row[0], "for", row[1], "on", indicator_date, "End date:", indicator_end_date])
-            indicators.append("\n")
+            indicators.append([1, row[0], row[1], indicator_date, indicator_end_date])
+    if not indicators:
+        indicators.append([0, 0, 0, 0, 0])
     c.execute("SELECT TYPE_CODE, ACTUAL_DATE, MEASURE "
               "FROM SDWIS2TX.TFRMEVNT "
               "WHERE TINWSYS_IS_NUMBER = {}".format(TINWSYS_IS_NUMBER))
@@ -102,21 +96,20 @@ def viewer(raw):
         actual_date = row[1].date()
         if row[0] == "CU90":
             if actual_date.year >= 2016:
-                milestones.append(["Milestone: ", row[0], "on", actual_date, "-", row[2]])
+                milestones.append([row[0], actual_date, row[2]])
         elif row[0] == "PB90":
             if actual_date.year >= 2016:
-                milestones.append(["Milestone: ", row[0], "on", actual_date, "-", row[2]])
+                milestones.append([row[0], actual_date, row[2]])
         else:
             if actual_date.year >= 2011:
-                milestones.append(["Milestone: ", row[0], "on", actual_date, "-", row[2]])
-        milestones.append("\n")
+                milestones.append([row[0], actual_date, row[2]])
     viols = [22, 23, 24, 27, 28, 29, 30, 34, 35, 36, 87]
     types = [51, 52, 53, 56, 57, 58, 59, 63, 64, 65, 66]
     c.execute("SELECT TMNVIOL_IS_NUMBER, TMNVTYPE_IS_NUMBER, STATUS_TYPE_CODE, STATE_PRD_BEGIN_DT, STATE_PRD_END_DT "
               "FROM SDWIS2TX.TMNVIOL "
               "WHERE TINWSYS_IS_NUMBER = {}".format(TINWSYS_IS_NUMBER))
-    violations = []
-    closed = []
+    violations = {}
+    closed = {}
     for row in c.fetchall():
         if row[1] in viols:
             options = ["V", "P"]
@@ -134,7 +127,6 @@ def viewer(raw):
                         end = ""
                     finally:
                         pass
-                    # print("Violation:", viol, status, "Begin:", begin, "End:", end)
                     results = []
                     c.execute("SELECT TENACTYP_IS_NUMBER "
                               "FROM SDWIS2TX.TMNVIEAA "
@@ -146,28 +138,26 @@ def viewer(raw):
                     s1 = set(results)
                     s2 = set(tenactyp_vals)
                     if not s1.intersection(s2):
-                        violations.append(["Violation:", viol, status, "Begin:", begin, "End:", end])
-                        violations.append("\n")
+                        v_inv = [viol, status, begin, end]
+                        v = []
                         for r in results:
                             c.execute("SELECT LOCATION_TYPE_CODE, FORMAL_TYPE_CODE, SUB_CATEGORY_CODE, NAME "
                                       "FROM SDWIS2TX.TENACTYP "
                                       "WHERE TENACTYP_IS_NUMBER = {}".format(r))
                             for row in c.fetchall():
-                                violations.append(["           ", r, row[0], row[1], row[2], "-", row[3]])
-                                violations.append("\n")
-                        violations.append("\n")
+                                v.append([r, row[0], row[1], row[2], row[3]])
+                        violations[tmnviol] = [v_inv, v]
                     else:
-                        closed.append(["Closed Violation:", viol, status, "Begin:", begin, "End:", end])
-                        closed.append("\n")
+                        clo_inv = [viol, status, begin, end]
+                        clo = []
                         for r in results:
                             c.execute("SELECT LOCATION_TYPE_CODE, FORMAL_TYPE_CODE, SUB_CATEGORY_CODE, NAME "
                                       "FROM SDWIS2TX.TENACTYP "
                                       "WHERE TENACTYP_IS_NUMBER = {}".format(r))
                             for row in c.fetchall():
-                                closed.append(["           ", r, row[0], row[1], row[2], "-", row[3]])
-                                closed.append("\n")
-                        closed.append("\n")
-    compliance = ["Compliance Schedules:"]
+                                clo.append([r, row[0], row[1], row[2], row[3]])
+                        closed[tmnviol] = [clo_inv, clo]
+    compliance = []
     c.execute("SELECT TENSCHD_IS_NUMBER, STATUS_DATE, CLOSED_DATE, TYPE_CODE_CV "
               "FROM SDWIS2TX.TENSCHD "
               "WHERE TINWSYS_IS_NUMBER = '{}'".format(TINWSYS_IS_NUMBER))
@@ -187,8 +177,7 @@ def viewer(raw):
                           "WHERE TENACTIV_IS_NUMBER = '{}'".format(tenactiv))
                 for row in c.fetchall():
                     description = row[0]
-                    compliance.append([type_code, ": ", description, "by", due_date.date()])
-                    compliance.append("\n")
+                    compliance.append([type_code, description, due_date.date()])
     c.execute("SELECT DISTINCT TMNSSGRP.REASON_TEXT, TMNSSGRP.BEGIN_DATE, TMNSSGRP.END_DATE, TMNMNR.SAMPLE_TYPE_CODE, "
               "TMNMNR.SAMPLE_COUNT, TMNMNR.SMPL_CNT_UNIT_CD, TMNMNR.TMNVTYPE_IS_NUMBER "
               "FROM SDWIS2TX.TINWSYS "
@@ -220,9 +209,9 @@ def viewer(raw):
         TMNVTYPE_IS_NUMBER = row[6]
         schedule = str(year)[2:] + " " + SMPL_CNT_UNIT_CD
         lst = [schedule, REASON_TEXT, BEGIN_DATE, END_DATE, SAMPLE_TYPE_CODE, SAMPLE_COUNT, SMPL_CNT_UNIT_CD,
-               TMNVTYPE_IS_NUMBER, "\n"]
+               TMNVTYPE_IS_NUMBER]
         scheds.append(lst)
-    # scheds = sorted(scheds, key=itemgetter(0))
+    scheds = sorted(scheds, key=itemgetter(0))
     # print("HISTORICAL SCHEDULES:")
     # for s in scheds:
     #     if s[3] == "          ":
@@ -257,7 +246,7 @@ def viewer(raw):
             val = c.fetchall()[0]
             anlyt_name = val[0].strip()  # LEAD SUMMARY OR COPPER SUMMARY
             if len(anlyt_name) == 12:
-                anlyt_name = "LEAD SUMMARY  "
+                anlyt_name = "LEAD SUMMARY     "
             anlyt_code = val[1]  # PB90 OR CU90
             summary.insert(0, anlyt_name)
             summary.append(anlyt_code)
@@ -283,8 +272,7 @@ def viewer(raw):
                     summary.append(MEASURE)
                     summary.append(UOM_CODE.strip())
                     summaries.append(summary)
-                    summaries.append("\n")
-    # summaries = sorted(summaries, key=itemgetter(1))
+    summaries = sorted(summaries, key=itemgetter(1))
     # print("SUMMARIES:")
     # for val in summaries:
     #     ale = "NO"
@@ -313,52 +301,206 @@ def viewer(raw):
             activity = v[5]
             lst = [_id, loc, tier, material, update, activity]
             sites.append(lst)
-            sites.append("\n")
-    # sites = sorted(sites, key=itemgetter(0))
+    sites = sorted(sites, key=itemgetter(0))
     c.close()
     conn.close()
-    return [inventory_info, "\n", indicators, milestones, closed, violations, compliance, scheds, summaries, sites]
+    return [inventory_info, indicators, milestones, closed, violations, compliance, scheds, summaries, sites]
 
 
-def calculate(*args):
-    try:
-        value = pws_id.get()
-        lst = viewer(value)
-        info = []
-        for l in lst:
-            info.append(l)
-        inventory.set(info)
-    except ValueError:
-        pass
+class Viewer(Frame):
+    def __init__(self, master=None):
+        super().__init__(master)
+        self.master = master
+        self.pack()
+
+        Frame.__init__(self, root)
+        self.canvas = Canvas(root, borderwidth=0, background="#ffffff")
+        self.frame = Frame(self.canvas, background="#ffffff")
+        self.vsb = Scrollbar(root, orient="vertical", command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=self.vsb.set)
+
+        self.vsb.pack(side="right", fill="y")
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.canvas.create_window((4, 4), window=self.frame, anchor="nw",
+                                  tags="self.frame")
+
+        self.frame.bind("<Configure>", self.onFrameConfigure)
+
+        self.create_widgets()
+
+    def onFrameConfigure(self, event):
+        # Reset the scroll region to encompass the inner frame
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def create_widgets(self):
+        self.info = StringVar()
+        self.indicators = StringVar()
+        self.milestones = StringVar()
+        self.closed = StringVar()
+        self.viols = StringVar()
+        self.comp = StringVar()
+        self.scheds = StringVar()
+        self.sums = StringVar()
+        self.sites = StringVar()
+        self.pws_entry = Entry(self.frame)
+        self.pws_entry.pack()
+        self.pws_enter = Button(self.frame, text="ENTER", command=self.callback)
+        self.pws_enter.pack()
+        self.pws_info = Label(self.frame, textvariable=self.info, font="Arial 10", justify="left")
+        self.pws_info.pack()
+
+        self.quit = Button(self.frame, text="QUIT", fg="red", command=self.master.destroy)
+        self.quit.pack()
+
+    def callback(self):
+        # [inventory_info, indicators, milestones, closed, violations, compliance, scheds, summaries, sites]
+        #
+        # NUMBER0, NAME, ACTIVITY_STATUS_CD, D_POPULATION_COUNT, PWS_ST_TYPE_CD, TINWSYS_IS_NUMBER,
+        #                       tinwsf0is, entry_points
+        pws_id = self.pws_entry.get()
+        info = viewer(pws_id)
+        inv = info[0]
+        ind = info[1][0]
+        if ind[0] == 0:
+            ind[1] = "NA"
+            ind[2] = "NA"
+            ind[3] = "NA"
+            ind[4] = "NA"
+        miles = info[2]
+        milestone_string = ""
+        if miles:
+            for stone in miles:
+                milestone_string = milestone_string + """
+                {} {} {}""".format(stone[0], stone[1], stone[2])
+        if not miles:
+            milestone_string = "No Milestones"
+        closed = info[3]
+        closed_string = ""
+        if closed:
+            for v in closed:
+                viol = closed[v]
+                desc = viol[0]
+                closed_string = closed_string + """
+                Vio: {} {} {} - {}""".format(desc[0], desc[1], desc[2], desc[3])
+                for x in viol[1]:
+                    closed_string = closed_string + """
+                         {} {} {} {} {}""".format(x[0], x[1], x[2], x[3], x[4])
+        if not closed:
+            closed_string = "No Closed Violations"
+        viols = info[4]
+        viols_string = ""
+        if viols:
+            for v in viols:
+                viol = viols[v]
+                desc = viol[0]
+                viols_string = viols_string + """
+                Vio: {} {} {} - {}""".format(desc[0], desc[1], desc[2], desc[3])
+                for x in viol[1]:
+                    viols_string = viols_string + """
+                         {} {} {} {} {}""".format(x[0], x[1], x[2], x[3], x[4])
+        if not viols:
+            viols_string = "No Open Violations"
+        comp = info[5]
+        comp_string = ""
+        if comp:
+            for c in comp:
+                comp_string = comp_string + """
+                {} {} {}""".format(c[0], c[1], c[2])
+        if not comp:
+            comp_string = "No Compliance Schedules"
+        sched = info[6]
+        sched_string = ""
+        hist_string = ""
+        if sched:
+            for c in sched:
+                if c[3] == "          ":
+                    if len(c[1]) > 100:
+                        comment = """{}
+                        {}""".format(c[1][:50], c[1][50:])
+                        sched_string = """
+                        SCHEDULE: {}
+                        COMMENT: {}
+                        BEGIN DATE: {}
+                        SAMPLES REQUIRED: {}""".format(c[0], comment, c[2], c[5])
+                    else:
+                        sched_string = """
+                        SCHEDULE: {}
+                        COMMENT: {}
+                        BEGIN DATE: {}
+                        SAMPLES REQUIRED: {}""".format(c[0], comment, c[2], c[5])
+                else:
+                    if len(c[1]) > 100:
+                        comment = """{}
+                        {}""".format(c[1][:50], c[1][50:])
+                        hist_string = hist_string + """
+                        {}: {} - {}
+                        Comment: {}""".format(c[0], c[2], c[3], c[1])
+                    else:
+                        hist_string = hist_string + """
+                        {}: {} - {}
+                        Comment: {}""".format(c[0], c[2], c[3], c[1])
+        if not sched:
+            sched_string = "No Schedules"
+            hist_string = "No Schedules"
+        summs = info[7]
+        sum_string = ""
+        if summs:
+            for c in summs:
+                ale = "NO"
+                if c[3] == "PB90":
+                    if float(c[4]) > 0.0154:
+                        ale = "YES"
+                elif c[3] == "CU90":
+                    if float(c[4]) > 1.34:
+                        ale = "YES"
+                sum_string = sum_string + """
+                {} {} - {} {} {} {} ALE: {}""".format(c[0], c[1], c[2], c[3], c[4], c[5], ale)
+        if not summs:
+            sum_string = "No Summaries"
+        sites = info[8]
+        sites_string = ""
+        if sites:
+            for c in sites:
+                sites_string = sites_string + """
+                {} {} - Tier: {} - {} Update: {} - {}""".format(c[0][:6], c[1], c[2], c[3], c[4].date(), c[5])
+        if not sites:
+            sites_string = "No Sample Sites"
+        text_return = """
+        PWS ID: {}
+        PWS NAME: {}
+        ACTIVITY: {}
+        POPULATION: {}
+        SYSTEM: {}
+        TINWSYS #: {}
+        DISTRIBUTION #: {}
+        ENTRY POINTS: {} \n
+        INDICATOR: {}
+        TYPE: {}
+        BEGIN: {}
+        END: {} \n
+        MILESTONES-
+        {} \n
+        CLOSED VIOLATIONS-
+        {} \n
+        OPEN VIOLATIONS-
+        {} \n
+        COMPLIANCE SCHEDULES-
+        {} \n
+        CURRENT SCHEDULE-
+        {} \n
+        HISTORICAL SCHEDULES-
+        {} \n
+        SUMMARIES-
+        {} \n
+        SAMPLE SITES-
+        {}
+        """.format(inv[0], inv[1], inv[2], inv[3], inv[4], inv[5], inv[6], inv[7], ind[1], ind[2], ind[3], ind[4],
+                   milestone_string, closed_string, viols_string, comp_string, sched_string, hist_string, sum_string,
+                   sites_string)
+        self.info.set(text_return)
+        return self.info
 
 
 root = Tk()
-root.title("Lead and Copper Rule Viewing Platform")
-
-mainframe = ttk.Frame(root, padding="3 3 12 12")
-mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
-root.columnconfigure(0, weight=1)
-root.rowconfigure(0, weight=1)
-# scrollbar = Scrollbar(root)
-# scrollbar.pack(side=RIGHT, fill=Y)
-
-pws_id = StringVar()
-inventory = StringVar()
-
-
-pws_entry = ttk.Entry(mainframe, width=8, textvariable=pws_id)
-pws_entry.grid(column=2, row=1, sticky=(W, E))
-
-ttk.Label(mainframe, textvariable=inventory, wraplength=850, justify='left').grid(column=2, row=2, sticky=(W, E))
-ttk.Button(mainframe, text="Get View", command=calculate).grid(column=3, row=3, sticky=W)
-
-ttk.Label(mainframe, text="PWS ID").grid(column=3, row=1, sticky=W)
-# # ttk.Label(mainframe, text="is equivalent to").grid(column=1, row=2, sticky=E)
-# ttk.Label(mainframe, text="Information").grid(column=3, row=2, sticky=W)
-
-for child in mainframe.winfo_children(): child.grid_configure(padx=5, pady=5)
-
-pws_entry.focus()
-root.bind('<Return>', calculate)
-
-root.mainloop()
+app = Viewer(master=root)
+app.mainloop()
