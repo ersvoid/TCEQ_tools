@@ -4,12 +4,12 @@ from operator import itemgetter
 # import os
 # import xlsxwriter EXCEL MODULE
 
-# dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+# dsn_tns = cx_Oracle.makedsn('link', 'port#', service_name='other_link')
 # if needed, place an 'r' before any parameter in order to address any special character such as '\'.
-# conn = cx_Oracle.connect('ESTINSON', 'Sartre05', dsn_tns)
+# conn = cx_Oracle.connect('username', 'apssword', dsn_tns)
 # if needed, place an 'r' before any parameter in order to address any special character such as '\'. For example, if
 # your user name contains '\', you'll need to place 'r' before the user name: user=r'User Name'
-# conn = cx_Oracle.connect("ESTINSON", "Sartre05", "aed2-scan.tceq.texas.gov/PRDEXA.TCEQ.TEXAS.GOV")
+# conn = cx_Oracle.connect("username", "password", "link/other_link")
 
 
 def req_red_sites(pop):
@@ -47,8 +47,8 @@ def req_rt_sites(pop):
 
 
 def view():
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
-    conn = cx_Oracle.connect('ESTINSON', 'Sartre05', dsn_tns, encoding='UTF-8', nencoding='UTF-8')
+    dsn_tns = cx_Oracle.makedsn('link', '1521', service_name='other_link')
+    conn = cx_Oracle.connect('username', 'password', dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     ask = input("ENTER PWS ID: ")
     if len(ask) == 7:
@@ -394,8 +394,8 @@ def view():
 
 
 def test_encoding():
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
-    conn = cx_Oracle.connect('ESTINSON', 'Sartre05', dsn_tns)
+    dsn_tns = cx_Oracle.makedsn('link', '1521', service_name='other_link')
+    conn = cx_Oracle.connect('username', 'password', dsn_tns)
     c = conn.cursor()
     c.execute("SELECT value "
               "FROM nls_database_parameters "
