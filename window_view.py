@@ -80,7 +80,7 @@ def viewer(user, pw, raw):
     if len(raw) == 9:
         if raw[:2] == 'tx':
             raw = "TX" + raw[2:]
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+    dsn_tns = cx_Oracle.makedsn('tceq.texas.gov', '1521', service_name='TCEQ.TEXAS.GOV')
     conn = cx_Oracle.connect(user, pw, dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     c.execute("SELECT NUMBER0, TINWSYS_IS_NUMBER, NAME, ACTIVITY_STATUS_CD, D_POPULATION_COUNT, PWS_ST_TYPE_CD "
@@ -396,7 +396,7 @@ class LoginFrame(Frame):
         self.username = self.entry_username.get()
         self.password = self.entry_password.get()
 
-        dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+        dsn_tns = cx_Oracle.makedsn('tceq.texas.gov', '1521', service_name='TCEQ.TEXAS.GOV')
         try:
             conn = cx_Oracle.connect(self.username, self.password, dsn_tns, encoding='UTF-8', nencoding='UTF-8')
             conn.close()
@@ -499,7 +499,7 @@ class Viewer(Frame):
         Label(self.frame, bg=color_main).pack()
 
     def word_export(self):
-        dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+        dsn_tns = cx_Oracle.makedsn('tceq.texas.gov', '1521', service_name='TCEQ.TEXAS.GOV')
         conn = cx_Oracle.connect(self.login_frame.username, self.login_frame.password, dsn_tns, encoding='UTF-8',
                                  nencoding='UTF-8')
         pws_id = self.pws_entry.get()
@@ -601,7 +601,7 @@ class Viewer(Frame):
         conn.close()
 
     def excel_export(self):
-        dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+        dsn_tns = cx_Oracle.makedsn('tceq.texas.gov', '1521', service_name='TCEQ.TEXAS.GOV')
         conn = cx_Oracle.connect(self.login_frame.username, self.login_frame.password, dsn_tns, encoding='UTF-8', nencoding='UTF-8')
         c = conn.cursor()
         pws_id = self.pws_entry.get()
