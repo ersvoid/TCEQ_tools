@@ -303,7 +303,7 @@ class Display(Page):
         else:
             pws_id = self.pws_entry.get()
             pws_id = pws_id.strip().replace(" ", "")
-            information = data_pull("msaccess", "msaccess", pws_id)
+            information = data_pull("username", "password", pws_id)
 
         self.pws_info.config(state="normal")
         self.pws_info.delete(1.0, tk.END)
