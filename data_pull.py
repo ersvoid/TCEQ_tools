@@ -289,7 +289,7 @@ def violation_pull(u, p, violation_number, year, option):
                         "TMNVIEAA.TENACTYP_IS_NUMBER = TENACTYP.TENACTYP_IS_NUMBER " \
                         "WHERE " \
                         "TMNVIOL.TMNVTYPE_IS_NUMBER = {}".format(viol_number)
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+    dsn_tns = cx_Oracle.makedsn('.gov link', 'port number', service_name='another .gov link')
     conn = cx_Oracle.connect(u, p, dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
 
@@ -422,7 +422,7 @@ def compliance_info(c, tinwsys):
 
 
 def compliance_pull(u, p, type_code, year, option):
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+    dsn_tns = cx_Oracle.makedsn('.gov link', 'port number', service_name='another .gov link')
     conn = cx_Oracle.connect(u, p, dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     compliance = []
@@ -661,9 +661,9 @@ def summary_info(c, tinwsys):
     return summaries
 
 
-def scheduling_summary_pull(lst):
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
-    conn = cx_Oracle.connect("ESTINSON", "Bigbend1", dsn_tns, encoding='UTF-8', nencoding='UTF-8')
+def scheduling_summary_pull(user, pw, lst):
+    dsn_tns = cx_Oracle.makedsn('.gov link', 'port number', service_name='another .gov link')
+    conn = cx_Oracle.connect(user, pw, dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     summaries = []
     for schedule in lst:
@@ -744,7 +744,7 @@ def scheduling_summary_pull(lst):
 
 
 def summary_pull(u, p, code, year):
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+    dsn_tns = cx_Oracle.makedsn('.gov link', 'port', service_name='.gov link')
     conn = cx_Oracle.connect(u, p, dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     summaries = []
@@ -972,7 +972,7 @@ def data_pull(user, pw, raw):
     if len(raw) == 9:
         if raw[:2] == 'tx':
             raw = "TX" + raw[2:]
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+    dsn_tns = cx_Oracle.makedsn('.gov', 'port', service_name='.gov')
     conn = cx_Oracle.connect(user, pw, dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     inv_info = inventory_info(c, raw)
@@ -1037,7 +1037,7 @@ def schedule_monitoring(user, pw, schedule, year, option):
                     "AND TINWSYS.ACTIVITY_STATUS_CD = 'A' " \
                     "AND  TMNMNR.SMPL_CNT_UNIT_CD = '{}' " \
                     "AND TMNSSGRP.BEGIN_DATE = '{}'".format(schedule, date)
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+    dsn_tns = cx_Oracle.makedsn('.gov', 'port', service_name='.gov')
     conn = cx_Oracle.connect(user, pw, dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     c.execute(sql_statement)
@@ -1057,7 +1057,7 @@ def schedule_monitoring(user, pw, schedule, year, option):
 
 
 def summary_pull_by_schedule(u, p, lst):
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+    dsn_tns = cx_Oracle.makedsn('.gov', 'port', service_name='.gov')
     conn = cx_Oracle.connect(u, p, dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     summaries = {}
@@ -1154,7 +1154,7 @@ def sampling_export(u, p, raw):
             pws_id = "TX" + raw[2:]
         else:
             pws_id = raw
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+    dsn_tns = cx_Oracle.makedsn('.gov', 'port', service_name='.gov')
     conn = cx_Oracle.connect(u, p, dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     lst = inventory_info(c, pws_id)
@@ -1207,7 +1207,7 @@ def find_samples(u, p, raw):
             pws_id = "TX" + raw[2:]
         else:
             pws_id = raw
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
+    dsn_tns = cx_Oracle.makedsn('.gov', 'port', service_name='.gov')
     conn = cx_Oracle.connect(u, p, dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     lst = inventory_info(c, pws_id)
@@ -1217,9 +1217,9 @@ def find_samples(u, p, raw):
     return sample_results_lst
 
 
-def testing():
-    dsn_tns = cx_Oracle.makedsn('aed2-scan.tceq.texas.gov', '1521', service_name='PRDEXA.TCEQ.TEXAS.GOV')
-    conn = cx_Oracle.connect("ESTINSON", "Bigbend1", dsn_tns, encoding='UTF-8', nencoding='UTF-8')
+def testing(u, p):
+    dsn_tns = cx_Oracle.makedsn('.gov', 'port', service_name='.gov')
+    conn = cx_Oracle.connect(u, p, dsn_tns, encoding='UTF-8', nencoding='UTF-8')
     c = conn.cursor()
     lst = water_systems(c)
     print("List of active water systems generated")
